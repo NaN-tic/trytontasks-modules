@@ -33,6 +33,7 @@ setup(name=PACKAGE,
     license=LICENSE,
     install_requires=[
         'invoke>=0.11.1',
+        'blessings',
         ],
     extras_require={},
     zip_safe=False,
