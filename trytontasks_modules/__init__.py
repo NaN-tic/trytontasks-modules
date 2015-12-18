@@ -57,13 +57,12 @@ def info(config=None):
 
 @task
 def config(repo=None, branch='default', update=False):
-    'Clone/Update main config repo (modules)'
+    'Clone/Update config repo'
     config = "./config"
     if update:
         repo = hgapi.Repo(config)
         repo.hg_pull()
-        node = repo.hg_node()
-        repo.hg_update(node)
+        repo.hg_update(branch)
         print t.green("Updated ") + t.bold('./config')
     else:
         if not repo:
