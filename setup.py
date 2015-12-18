@@ -34,6 +34,7 @@ setup(name=PACKAGE,
     install_requires=[
         'invoke>=0.11.1',
         'blessings',
+        'hgapi',
         ],
     extras_require={},
     zip_safe=False,

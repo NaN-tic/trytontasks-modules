@@ -2,6 +2,7 @@
 #this repository contains the full copyright notices and license terms.
 import ConfigParser
 import os
+import hgapi
 from invoke import task, run
 from blessings import Terminal
 from trytontasks_scm import hg_clone
@@ -55,6 +56,17 @@ def info(config=None):
             )
 
 @task
-def config(repo, branch='default'):
-    'Clone config repo'
-    hg_clone(repo, path='./config', branch=branch)
+def config(repo=None, branch='default', update=False):
+    'Clone/Update main config repo (modules)'
+    config = "./config"
+    if update:
+        repo = hgapi.Repo(config)
+        repo.hg_pull()
+        node = repo.hg_node()
+        repo.hg_update(node)
+        print t.green("Updated ") + t.bold('./config')
+    else:
+        if not repo:
+            print t.bold_red('Select a reposotory to clone')
+            return
+        hg_clone(repo, path=config, branch=branch)
