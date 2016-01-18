@@ -10,7 +10,7 @@ from trytontasks_scm import hg_clone
 t = Terminal()
 
 def read_config_file(config_file=None, type='repos', unstable=True):
-    assert type in ('repos', 'patches', 'all'), "Invalid 'type' param"
+    assert type in ('repos', 'servers', 'patches', 'all'), "Invalid 'type' param"
 
     Config = ConfigParser.ConfigParser()
     if config_file is not None:
@@ -31,9 +31,13 @@ def read_config_file(config_file=None, type='repos', unstable=True):
     for section in Config.sections():
         is_patch = (Config.has_option(section, 'patch')
                 and Config.getboolean(section, 'patch'))
-        if type == 'repos' and is_patch:
+        is_server = (Config.has_option(section, 'server')
+                and Config.get(section, 'server'))
+        if type == 'repos' and (is_patch or is_server):
             Config.remove_section(section)
         elif type == 'patches' and not is_patch:
+            Config.remove_section(section)
+        elif type == 'servers' and not is_server:
             Config.remove_section(section)
     return Config
 
