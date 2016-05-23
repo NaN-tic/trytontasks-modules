@@ -157,3 +157,36 @@ def increase_version(version, config=None, unstable=True, clean=False):
         processes.append(p)
         wait_processes(processes)
     wait_processes(processes, 0)
+
+@task
+def clone(config=None):
+    '''Clone trytond modules'''
+    Modules = read_config_file(config)
+
+    modules = Modules.sections()
+    modules.sort()
+
+    processes = []
+    for module in modules:
+        repo = Modules.get(module, 'repo')
+        url = Modules.get(module, 'url')
+        path = Modules.get(module, 'path')
+        branch = Modules.get(module, 'branch')
+
+        repo_path = os.path.join(path, module)
+        if os.path.exists(repo_path):
+            continue
+
+        if not os.path.exists('./trytond') and config != 'base.cfg':
+            print t.bold_red('Before clone all modules, please clone base.cfg modules')
+            return
+
+        print "Adding Module " + t.bold(module) + " to clone"
+
+        func = hg_clone
+        p = Process(target=func, args=(url, repo_path, branch))
+        p.start()
+        processes.append(p)
+
+    if processes:
+        wait_processes(processes)
