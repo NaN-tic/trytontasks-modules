@@ -13,6 +13,15 @@ from trytontasks_scm import hg_clone
 t = Terminal()
 MAX_PROCESSES = 25
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARN = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = "\033[1m"
+
 def wait_processes(processes, maximum=MAX_PROCESSES, exit_code=None):
     i = 0
     while len(processes) > maximum:
@@ -138,6 +147,36 @@ def increase_module_version(module, path, version):
 
     os.chdir(cwd)
 
+def _hg_branches(module, path, config_branch=None):
+    client = hgapi.Repo(path)
+    branches = client.get_branch_names()
+    active = client.hg_branch()
+
+    b = []
+    branches.sort()
+    branches.reverse()
+    for branch in branches:
+        br = branch
+
+        if branch == active:
+            br = "*" + br
+
+        if branch == config_branch:
+            br = "[" + br + "]"
+
+        b.append(br)
+
+    msg = str.ljust(module, 40, ' ') + "\t".join(b)
+
+    if "[*" in msg:
+        msg = bcolors.OKGREEN + msg + bcolors.ENDC
+    elif "\t[" in msg or '\t*' in msg:
+        msg = bcolors.FAIL + msg + bcolors.ENDC
+    else:
+        msg = bcolors.WARN + msg + bcolors.ENDC
+
+    print msg
+
 @task()
 def increase_version(version, config=None, unstable=True, clean=False):
     '''
@@ -159,7 +198,7 @@ def increase_version(version, config=None, unstable=True, clean=False):
     wait_processes(processes, 0)
 
 @task
-def clone(config=None):
+def clone(config=None, branch=None):
     '''Clone trytond modules'''
     Modules = read_config_file(config)
 
@@ -171,7 +210,7 @@ def clone(config=None):
         repo = Modules.get(module, 'repo')
         url = Modules.get(module, 'url')
         path = Modules.get(module, 'path')
-        branch = Modules.get(module, 'branch')
+        branch = branch or Modules.get(module, 'branch')
 
         repo_path = os.path.join(path, module)
         if os.path.exists(repo_path):
@@ -190,3 +229,23 @@ def clone(config=None):
 
     if processes:
         wait_processes(processes)
+
+@task()
+def branches(config=None, module=None):
+    Modules = read_config_file(config)
+
+    modules = Modules.sections()
+    modules.sort()
+
+    if module:
+        modules = [module] if (module and module in modules) else None
+
+    for module in modules:
+        repo = Modules.get(module, 'repo')
+        url = Modules.get(module, 'url')
+        path = Modules.get(module, 'path')
+        branch = Modules.get(module, 'branch')
+
+        repo_path = os.path.join(path, module)
+
+        _hg_branches(module, repo_path, branch)
