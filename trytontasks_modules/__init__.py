@@ -232,6 +232,7 @@ def clone(config=None, branch=None):
 
 @task()
 def branches(config=None, module=None):
+    '''Show info module branches'''
     Modules = read_config_file(config)
 
     modules = Modules.sections()
