@@ -210,7 +210,7 @@ def clone(config=None, branch=None):
         repo = Modules.get(module, 'repo')
         url = Modules.get(module, 'url')
         path = Modules.get(module, 'path')
-        branch = branch or Modules.get(module, 'branch')
+        mod_branch = branch or Modules.get(module, 'branch')
 
         repo_path = os.path.join(path, module)
         if os.path.exists(repo_path):
@@ -223,7 +223,7 @@ def clone(config=None, branch=None):
         print "Adding Module " + t.bold(module) + " to clone"
 
         func = hg_clone
-        p = Process(target=func, args=(url, repo_path, branch))
+        p = Process(target=func, args=(url, repo_path, mod_branch))
         p.start()
         processes.append(p)
 
